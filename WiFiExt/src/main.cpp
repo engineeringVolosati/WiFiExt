@@ -3,7 +3,8 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
-#include <dhcpserver.h>
+// #include <dhcpserver.h>
+#include <LwipDhcpServer.h>
 #include <lwip/napt.h>
 #include <lwip/dns.h>
 
@@ -23,7 +24,7 @@ uint32_t blinkPeriod;
 #define EXTENDER_MASK IPAddress(255, 255, 255, 0)
 
 static const char DEF_AUTH_NAME[] PROGMEM = "ESP8266";
-static const char DEF_AUTH_PSWD[] PROGMEM = "6628PSE";
+static const char DEF_AUTH_PSWD[] PROGMEM = "12345678";
 const bool DEF_USE_AUTH = true;
 
 struct config_t {
@@ -34,6 +35,8 @@ struct config_t {
   char auth_pswd[16 + 1];
   bool use_auth;
 } config;
+
+
 
 ESP8266WebServer *http = NULL;
 bool useCaptivePortal;
@@ -440,8 +443,16 @@ static void onWiFiConnected(const WiFiEventStationModeGotIP &event) {
   destroyWebServer();
   WiFi.softAPdisconnect();
   // give DNS servers to AP side
-  dhcps_set_dns(0, WiFi.dnsIP(0));
-  dhcps_set_dns(1, WiFi.dnsIP(1));
+  // const uint32_t DNS1 = IPAddress(8, 8, 4, 4);
+  // const uint32_t DNS0 = IPAddress(8, 8, 8, 8);
+
+  // dhcpSoftAP.dhcps_set_dns(0, WiFi.dnsIP(0));
+  // dhcpSoftAP.dhcps_set_dns(1, WiFi.dnsIP(1));
+  dhcpSoftAP.dhcps_set_dns(0, IPAddress(8, 8, 4, 4));
+  dhcpSoftAP.dhcps_set_dns(1, IPAddress(8, 8, 8, 8));
+  // dhcps_set_dns(0, WiFi.dnsIP(0));
+  // dhcps_set_dns(1, WiFi.dnsIP(1));
+  // WiFi.setDNS(WiFi.dnsIP(0), WiFi.dnsIP(1))
   // enable AP, with android-compatible google domain
   WiFi.softAPConfig(EXTENDER_IP, EXTENDER_IP, EXTENDER_MASK);
   if (! WiFi.softAP(config.ap_ssid, config.wifi_pswd, WiFi.channel(), false, 8))
